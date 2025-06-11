@@ -39,12 +39,31 @@ def get_pokemon():
     # 9
     return {"ok": True}
 
+'''
+Un endpoint del tipo GET, cuya URL sea /pokemon/ID, que entregue como JSON la
+información de cada Pokémon dado su ID.
+'''
 @app.get("/pokemon/{idPokemon}")
 def get_idPokemon(idPokemon: int):
-    cached = r.get(idPokemon) # devuelve string/none ¿qué signfica esto?
-    if cached:
-        return  json.loads(cached) # respuesta inmediata 
-# al ejecutar hasta este punto me devuelve solo null, ¿por qué? porque aun no pido la url del pokemon?
+    cached = r.get(idPokemon) # le pregunto a redis por los pokemones con la id
+    if cached: # si está el pokemon {id} entonces lo paso a json
+        return  json.loads(cached)  
     else:
-        return {"pokemon": "Pokemon no encontrado"}
+        return {"pokemon": "Pokemon no existe - no se encuentra"} # sino está el pokemon no se encuentra o no existe
+    
+
+'''
+Un endpoint del tipo GET, cuya URL sea /pokemon/filter/type/TYPE, que entregue
+una lista en JSON con todos los Pokemon cuyo tipo primario corresponda al tipo
+entregado en la variable TYPE
+'''
+@app.get("/pokemon/filter/type/TYPE")
+def get_pokemonPrimario(tipo: str):
+    url_pokemon = "https://pokeapi.co/api/v2/pokemon/?limit=151" # creo que no es necesario hacer esto, sino buscar en redis
+    info_pokemon = requests.get(url_pokemon).json() # por lo tanto no es necesario hacer un get, sino recorrer redis todos los pokemones
+
+    for i in info_pokemon["results"]["types"]: #esto podría estar bien
+        tipo_pokemon = i["type"] #faltaría hacer una condición que solo me entregue los primarios y no los dos tipos
+
+    return tipo_pokemon    
     

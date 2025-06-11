@@ -19,31 +19,32 @@ def get_pokemon():
     # 2
     poke_json = json.loads(response.text)
     pokemons = poke_json["results"]
-
     # 3
     for e,pokemon in enumerate(pokemons):
         poke_url = pokemon["url"]
-
         # 4
-        value = r.get(e+1) 
+        value = r.get(e+1) # busca en redis
         # si value tiene valor 5.a
         if value:
             # 6.a
             continue
-
         # 5.b esta implicito, ya que value sera None si el pokemon no exite, por ende el if anterior no hace el continue
-        
         # 6b
         poke_response = requests.get(poke_url)
-
         # 7.b
         poke_json_info = json.loads(poke_response.text)
-
         # 8.b
         poke_json_object = json.dumps(poke_json_info) # Convertimos a tipo json, les toca investigar el por qué
         r.set(e+1, poke_json_object, ex=3600)
-
     # 9
     return {"ok": True}
 
+@app.get("/pokemon/{idPokemon}")
+def get_idPokemon(idPokemon: int):
+    cached = r.get(idPokemon) # devuelve string/none ¿qué signfica esto?
+    if cached:
+        return  json.loads(cached) # respuesta inmediata 
+# al ejecutar hasta este punto me devuelve solo null, ¿por qué? porque aun no pido la url del pokemon?
+    else:
+        return {"pokemon": "Pokemon no encontrado"}
     

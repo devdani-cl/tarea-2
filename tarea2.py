@@ -58,12 +58,12 @@ una lista en JSON con todos los Pokemon cuyo tipo primario corresponda al tipo
 entregado en la variable TYPE
 '''
 @app.get("/pokemon/filter/type/TYPE")
-def get_pokemonPrimario(tipo: str):
-    url_pokemon = "https://pokeapi.co/api/v2/pokemon/?limit=151" # creo que no es necesario hacer esto, sino buscar en redis
-    info_pokemon = requests.get(url_pokemon).json() # por lo tanto no es necesario hacer un get, sino recorrer redis todos los pokemones
-
+def get_pokemonPrimario(tipo: str): # 'ice', 'grass', etc
+    cached = r.get(tipo) # ¿cómo recorro los pokemones desde Redis?
+# es necesario crear un método que me entregue toda la información de los pokemones y usarla para navegar en los tipo???
     for i in info_pokemon["results"]["types"]: #esto podría estar bien
         tipo_pokemon = i["type"] #faltaría hacer una condición que solo me entregue los primarios y no los dos tipos
+        if tipo_pokemon == i["type"][0]:
 
-    return tipo_pokemon    
+            return tipo_pokemon    
     

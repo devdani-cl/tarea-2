@@ -51,7 +51,6 @@ def get_idPokemon(idPokemon: int):
     else:
         return {"pokemon": "Pokemon no existe - no se encuentra"} # sino está el pokemon no se encuentra o no existe
     
-
 '''
 Un endpoint del tipo GET, cuya URL sea /pokemon/filter/type/TYPE, que entregue
 una lista en JSON con todos los Pokemon cuyo tipo primario corresponda al tipo
@@ -59,15 +58,34 @@ entregado en la variable TYPE
 '''
 @app.get("/pokemon/filter/type/{tipo}") # 'ice', 'grass', etc
 def get_pokemonPrimario(tipo: str): # 'ice', 'grass', etc    
-    tipo_pokemon = []
-    for n in range(1,152):
-        cache = r.get(n)
-        if not cache:
+    tipo_pokemon = [] # lista vacia para agregar los diccionarios completos
+    for n in range(1,152): # recorro 
+        cache = r.get(n) # busco en redis 
+        if not cache: # si no está lo salto
             continue
 
-        poke_json = json.loads(cache)
-        for i in poke_json["types"]:
+        poke_json = json.loads(cache) # lo convierto a json para poder indexarlo
+        for i in poke_json["types"]: 
             if i["slot"] == 1 and i["type"]["name"] == tipo:
-                tipo_pokemon.append(poke_json)
-    return tipo_pokemon
-       
+                tipo_pokemon.append(poke_json) #lo agrego
+    return tipo_pokemon 
+
+'''
+Un endpoint del tipo GET, cuya URL sea /pokemon/filter/type/TYPE/2, similar al
+anterior, pero que entregue todos los Pokemon cuyo segundo tipo sea el tipo entregado
+en la variable TYPE.
+'''
+@app.get("/pokemon/filter/type/{tipo}/2")
+def get_pokemonSecundario(tipo: str): # 'ice', 'grass', etc    
+    tipo_pokemon = [] # lista vacia para agregar los diccionarios completos
+    for n in range(1,152): # recorro 
+        cache = r.get(n) # busco en redis 
+        if not cache: # si no está lo salto
+            continue
+
+        poke_json = json.loads(cache) # lo convierto a json para poder indexarlo
+        for i in poke_json["types"]: 
+            if i["slot"] == 2 and i["type"]["name"] == tipo:
+                tipo_pokemon.append(poke_json) #lo agrego
+    return tipo_pokemon 
+

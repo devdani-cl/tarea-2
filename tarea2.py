@@ -89,3 +89,40 @@ def get_pokemonSecundario(tipo: str): # 'ice', 'grass', etc
                 tipo_pokemon.append(poke_json) #lo agrego
     return tipo_pokemon 
 
+'''
+Un endpoint del tipo GET, cuya URL sea /pokemon/filter/power/, que entregue los
+Pokemon mas fuertes segun su stat de ataque. Por defecto, debe entregar un top 5,
+pero puede recibir un parametro opcional llamado results (de tipo entero), que haga
+referencia a la cantidad de resultados que debe entregar el endpoint
+'''
+@app.get("/pokemon/filter/power/")
+def filtrarPorAtaque():
+    top = []
+    for n in range(1,152):
+        cache = r.get(n)
+        if not cache:
+            continue
+        poke_json = json.loads(cache)
+        for i in poke_json["stats"]:
+            if i["stat"]["name"] == "attack":
+                top.append(i["base_stat"], poke_json) # ¿por qué tengo que agregar poke_json?
+    return top
+
+'''
+Realice lo mismo con la defensa, la velocidad y el peso. Los endpoints deben llamarse
+defense, speed y weight, respectivamente.
+'''
+
+@app.get("/pokemon/filter/defense/")
+def filtrarPorDefensa():
+    pass
+
+
+@app.get("/pokemon/filter/speed/")
+def filtrarPorVelocidad():
+    pass
+
+
+@app.get("/pokemon/filter/weight/")
+def filtrarPorPeso():
+    pass

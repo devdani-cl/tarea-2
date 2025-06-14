@@ -45,9 +45,9 @@ información de cada Pokémon dado su ID.
 '''
 @app.get("/pokemon/{idPokemon}")
 def get_idPokemon(idPokemon: int):
-    cached = r.get(idPokemon) # le pregunto a redis por los pokemones con la id
-    if cached: # si está el pokemon {id} entonces lo paso a json
-        return  json.loads(cached)  
+    cache = r.get(idPokemon) # le pregunto a redis por los pokemones con la id
+    if cache: # si está el pokemon {id} entonces lo paso a json
+        return  json.loads(cache)  
     else:
         return {"pokemon": "Pokemon no existe - no se encuentra"} # sino está el pokemon no se encuentra o no existe
     
@@ -58,21 +58,16 @@ una lista en JSON con todos los Pokemon cuyo tipo primario corresponda al tipo
 entregado en la variable TYPE
 '''
 @app.get("/pokemon/filter/type/{tipo}") # 'ice', 'grass', etc
-def get_pokemonPrimario(tipo: str): # 'ice', 'grass', etc
-#    info_pokemon = get_idPokemon(idPokemon=int) # aca entro al método donde me entrega el id 
-    '''
-    El tema es hacer la iteración sobre la redis ¿cómo lo hago?
-    '''
-    info_pokemon = r.get("https://pokeapi.co/api/v2/pokemon/?limit=151")
-    for n in info_pokemon["results"]:
-        nombrePokemon = n["name"]
-        primertipo = n["types"]["slot"] 
-        if  primertipo == 1 and primertipo["type"]["name"] == tipo:
-            return  [{"{nombrePokemon}": tipo}]
+def get_pokemonPrimario(tipo: str): # 'ice', 'grass', etc    
+    tipo_pokemon = []
+    for n in range(1,152):
+        cache = r.get(n)
+        if not cache:
+            continue
 
-'''
-    for i in info_pokemon["results"]["types"]: #esto podría estar bien
-        if i["slot"] == 1:
-            primario = i["type"]["name"]  
-            return [{"{nombrePokemon}": primario}]
-'''            
+        poke_json = json.loads(cache)
+        for i in poke_json["types"]:
+            if i["slot"] == 1 and i["type"]["name"] == tipo:
+                tipo_pokemon.append(poke_json)
+    return tipo_pokemon
+       

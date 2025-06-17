@@ -93,36 +93,49 @@ def get_pokemonSecundario(tipo: str): # 'ice', 'grass', etc
 Un endpoint del tipo GET, cuya URL sea /pokemon/filter/power/, que entregue los
 Pokemon mas fuertes segun su stat de ataque. Por defecto, debe entregar un top 5,
 pero puede recibir un parametro opcional llamado results (de tipo entero), que haga
-referencia a la cantidad de resultados que debe entregar el endpoint
+referencia a la cantidad de resultados que debe entregar el endpoint.
+
+Realice lo mismo con la defensa, la velocidad y el peso. Los endpoints deben llamarse
+defense, speed y weight, respectivamente.
+
 '''
-@app.get("/pokemon/filter/power/")
-def filtrarPorAtaque():
+@app.get("/pokemon/filter/{stats}/") # power, defense, speed, weigth
+def filtrarPorStat(stats: str):
     top = []
     for n in range(1,152):
         cache = r.get(n)
         if not cache:
             continue
+
         poke_json = json.loads(cache)
-        for i in poke_json["stats"]:
-            if i["stat"]["name"] == "attack":
-                top.append(i["base_stat"], poke_json) # ¿por qué tengo que agregar poke_json?
-    return top
+        if stats == "power": 
+            for i in poke_json["stats"]:
+                if i["stat"]["name"] == "attack":
+                    top.append((i["base_stat"], poke_json)) 
+
+        if stats == "defense":
+            for i in poke_json["stats"]:
+                if i["stat"]["name"] == "defense":
+                    top.append((i["base_stat"], poke_json))
+        
+        if stats == "speed":
+            for i in poke_json["stats"]:
+                if i["stat"]["name"] == "speed":
+                    top.append((i["base_stat"], poke_json))
+        
+        if stats == "weight":
+            top.append((poke_json["weight"], poke_json))
+
+    top_stats =  sorted(top, key=lambda x:x[0], reverse=True)
+    return [p for _, p in top_stats[:5]]
+
+
 
 '''
-Realice lo mismo con la defensa, la velocidad y el peso. Los endpoints deben llamarse
-defense, speed y weight, respectivamente.
+Cree un endpoint muy similar a /pokemon/extract pokemon del tipo GET, cuya URL
+sea /pokemon/extract power move, que sea capaz de guardar en Redis (de la forma
+que usted estime conveniente) el poder del ataque consultado.
 '''
-
-@app.get("/pokemon/filter/defense/")
-def filtrarPorDefensa():
-    pass
-
-
-@app.get("/pokemon/filter/speed/")
-def filtrarPorVelocidad():
-    pass
-
-
-@app.get("/pokemon/filter/weight/")
-def filtrarPorPeso():
+@app.get("/pokemon/extract_powe_move/")
+def get_extractPowerMove():
     pass

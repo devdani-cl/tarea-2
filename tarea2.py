@@ -67,7 +67,9 @@ def get_pokemonPrimario(tipo: str): # 'ice', 'grass', etc
         poke_json = json.loads(cache) # lo convierto a json para poder indexarlo
         for i in poke_json["types"]: 
             if i["slot"] == 1 and i["type"]["name"] == tipo:
-                tipo_pokemon.append(poke_json) #lo agrego
+                tipo_pokemon.append({
+                    "pokemon": poke_json["name"],
+                    "tipo": tipo}) #lo agrego solo el nombre y el tipo y no el paño completo de los pokemones
     return tipo_pokemon 
 
 '''
@@ -86,7 +88,9 @@ def get_pokemonSecundario(tipo: str): # 'ice', 'grass', etc
         poke_json = json.loads(cache) # lo convierto a json para poder indexarlo
         for i in poke_json["types"]: 
             if i["slot"] == 2 and i["type"]["name"] == tipo:
-                tipo_pokemon.append(poke_json) #lo agrego
+                tipo_pokemon.append({
+                    "pokemon": poke_json["name"],
+                    "tipo": tipo})
     return tipo_pokemon 
 
 '''

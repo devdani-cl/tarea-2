@@ -3,6 +3,7 @@ import redis
 import os
 import requests
 import json
+from random import choice
 
 app = FastAPI()
 
@@ -168,3 +169,61 @@ respuesta, dentro del json que devuelva su api debe estar la llave power
 @app.get("/pokemon/extract_powe_move/")
 def get_extractPowerMove():
     pass
+
+
+'''
+Cree un endpoint que devuelva una batalla Pokemon por turnos, cuya URL sea
+/pokemon/fight/ID1vsID2, donde ID1 e ID2 hacen referencia a los IDs de dos Pokemon.
+En cada turno, cada Pokemon lanza un ataque; el que comienza se elige de forma aleato-
+ria. Todos los ataques tienen un porcentaje de efectividad del 100%. La batalla debe
+iterar hasta que un Pokemon quede fuera de combate. El historial de la batalla debe
+ser guardado en algun tipo de estructura que usted estime conveniente, con tal de que
+el endpoint devuelva un JSON.
+'''
+@app.get("/pokemon/fight/{id1}/{id2}/")
+def batallaPokemon(id1: int, id2: int):
+    p1 = None #inicializo los pokemon en None para despues rellenar con datos
+    p2 = None
+    for i in range(1,152):
+        cache = r.get(i)
+        if not cache:
+            continue
+        poke_json = json.loads(cache)
+        if i == id1:
+            hp1, ataque1 = 0, 0 #inicializo la vida y el ataque en 0
+            for s in poke_json["stats"]:
+                if s["stat"]["name"] == "hp": #busca la vida del pokemon
+                    hp1 = s["base_stat"] # se encuentra la vida y se le asigna
+                    break 
+            for s in poke_json["stats"]:
+                if s["stat"]["name"] == "attack": #busca la vida del pokemon
+                    ataque1 = s["base_stat"] # se encuentra la vida y se le asigna
+                    break 
+            p1 = {"id": id1, "pokemon": poke_json["name"], "vida": hp1, "ataque": ataque1} # pokemon con sus datos para la batalla
+        
+        if i == id2:
+            hp2, ataque2 = 0, 0 #inicializo la vida y el ataque en 0
+            for s in poke_json["stats"]:
+                if s["stat"]["name"] == "hp": #busca la vida del pokemon
+                    hp2 = s["base_stat"] # se encuentra la vida y se le asigna
+                    break 
+            for s in poke_json["stats"]:
+                if s["stat"]["name"] == "attack": #busca la vida del pokemon
+                    ataque2 = s["base_stat"] # se encuentra la vida y se le asigna
+                    break 
+            p2 = {"id": id2, "pokemon": poke_json["name"], "vida": hp2, "ataque": ataque2} # pokemon con sus datos para la batalla
+    
+    resultados = [] 
+    atacante = choice([1,2])
+    while p1["vida"] > 0 and p2["vida"] > 0:
+        if atacante == 1: # si es 1 el pokemon1 ataca primero 
+            p2["vida"] = max(p2["vida"] - p1["ataque"], 0) #la vida nunca es negativa, el min es cero
+            resultados.append(f"{p1["pokemon"]} ataca a {p2["pokemon"]} → {p2["pokemon"]} HP = {p2["vida"]}")
+            atacante = 2
+        else:
+            p1["vida"] = max(p1["vida"] - p2["ataque"], 0)
+            resultados.append(f"{p2["pokemon"]} ataca a {p1["pokemon"]} → {p1["pokemon"]} HP = {p1["vida"]}")
+            atacante = 1
+
+    ganador = p1["pokemon"] if p1["vida"] > 0 else p2["pokemon"]
+    return {"resultado": resultados, "ganador": ganador}

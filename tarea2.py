@@ -166,9 +166,30 @@ vez, este debe ser guardado en redis, por consecuencia, si el movimiento existe 
 se debe entregar la informacion obtenida desde este. PD: Si usted quiere verificar su
 respuesta, dentro del json que devuelva su api debe estar la llave power
 '''
-@app.get("/pokemon/extract_powe_move/")
-def get_extractPowerMove():
-    pass
+@app.get("/pokemon/extract_power_move/{idPokemon}/")
+def get_extractPowerMove(idPokemon: int):
+    datos = r.get(idPokemon) #se lee el pokmeon con la id desde redis
+    if not datos: # si no existe error
+        return {"error": "no encontrado"}
+    poke = json.loads(datos) #se convierte a json(diccionario) para indexar
+    result = []
+
+    if "moves" in poke: #si existe la clave move en el json itero
+        for mov in poke["moves"]: #itero cada entrada en moves
+            name = mov["move"]["name"] #nombre del movimiento
+            key = f"move_power:{name}" #se crea la clave que estará en redis, para luego reviar el mov
+            cache = r.get(key) # se lee el cache del movimiento
+            if cache:
+                info = json.loads(cache) 
+            else:
+                resp = requests.get(mov["move"]["url"]) 
+                info = resp.json()
+                if "power" not in info: #solo se guarda si existe el campo "power"
+                    continue
+                r.set(key, json.dumps(info), ex=3600)                
+            result.append(info) #guarda 
+
+    return result
 
 
 '''

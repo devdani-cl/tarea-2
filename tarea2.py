@@ -103,42 +103,67 @@ Realice lo mismo con la defensa, la velocidad y el peso. Los endpoints deben lla
 defense, speed y weight, respectivamente.
 
 '''
-@app.get("/pokemon/filter/{stats}/") # power, defense, speed, weigth
-def filtrarPorStat(stats: str):
+@app.get("/pokemon/filter/{stats}/")
+@app.get("/pokemon/filter/{stats}/{results}")
+def filtrarPorStat(stats: str, results: int=5):
+    '''
+    Dos endpoints donde /pokemon/filter/{stats}/ filtra los primeros 5
+    y /pokemon/filter/{stats}/{results}/ que filtra por el numero que uno quiera, 
+    los dos endpoints apuntan a la misma función
+    '''
     top = []
-    for n in range(1,152):
-        cache = r.get(n)
+    for n in range(1, 152):
+        cache = r.get(n) #busco en redis a los pokemones
         if not cache:
             continue
+        poke_stats = json.loads(cache) #lo convierto en json para indexar
 
-        poke_json = json.loads(cache)
-        if stats == "power": 
-            for i in poke_json["stats"]:
-                if i["stat"]["name"] == "attack":
-                    top.append((i["base_stat"], poke_json)) 
+#filtro por stats
+        if stats == "power":
+            for s in poke_stats["stats"]:
+                if s["stat"]["name"] == "attack":
+                    top.append((
+                        s["base_stat"],
+                        {"pokemon": poke_stats["name"], "stat_attack": s["base_stat"]}
+                    ))
+                    break
 
         if stats == "defense":
-            for i in poke_json["stats"]:
-                if i["stat"]["name"] == "defense":
-                    top.append((i["base_stat"], poke_json))
-        
+            for s in poke_stats["stats"]:
+                if s["stat"]["name"] == "defense":
+                    top.append((
+                        s["base_stat"],
+                        {"pokemon": poke_stats["name"], "stat_defense": s["base_stat"]}
+                    ))
+                    break
+
         if stats == "speed":
-            for i in poke_json["stats"]:
-                if i["stat"]["name"] == "speed":
-                    top.append((i["base_stat"], poke_json))
-        
+            for s in poke_stats["stats"]:
+                if s["stat"]["name"] == "speed":
+                    top.append((
+                        s["base_stat"],
+                        {"pokemon": poke_stats["name"], "stat_speed": s["base_stat"]}
+                    ))
+                    break
+
         if stats == "weight":
-            top.append((poke_json["weight"], poke_json))
+            peso = poke_stats["weight"]
+            top.append((
+                peso,
+                {"pokemon": poke_stats["name"], "stat_weight": peso}
+            ))
 
-    top_stats =  sorted(top, key=lambda x:x[0], reverse=True)
-    return [p for _, p in top_stats[:5]]
-
-
+    top_sorted = sorted(top, key=lambda x: x[0], reverse=True) # ordenar de mayor a menor 
+    return [e for _, e in top_sorted[:results]] # creo una nueva lista, por defecto devuelve los primeros 5 con el endpoint /pokemon/filter/{stats}/,
+# ya que results por defecto vale 5. El endpoint /pokemon/filter/{stats}/{results}/ tambien apunta a la misma función,
+# donde results indica el top que uno quiera mostrar. 
 
 '''
-Cree un endpoint muy similar a /pokemon/extract pokemon del tipo GET, cuya URL
-sea /pokemon/extract power move, que sea capaz de guardar en Redis (de la forma
-que usted estime conveniente) el poder del ataque consultado.
+Cree un endpoint tipo GET, cuya URL sea /pokemon/extract_power_move capaz de
+consultar la informacion de un movimiento, si el movimiento fue consultado por primera
+vez, este debe ser guardado en redis, por consecuencia, si el movimiento existe en redis
+se debe entregar la informacion obtenida desde este. PD: Si usted quiere verificar su
+respuesta, dentro del json que devuelva su api debe estar la llave power
 '''
 @app.get("/pokemon/extract_powe_move/")
 def get_extractPowerMove():
